@@ -1,4 +1,5 @@
 import { Web3Provider } from '@/app/context/Web3Context';
+import './globals.css';
 // You'll want to uncomment these when you have the components created
 // import Navbar from '@/components/Navbar';
 // import Footer from '@/components/Footer';

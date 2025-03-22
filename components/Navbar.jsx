@@ -3,6 +3,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Web3Context } from '@/app/context/Web3Context';
 import { Button } from './ui/button';
+import { usePathname } from 'next/navigation';
 import { Wallet, Menu, X, ChevronDown, ExternalLink } from 'lucide-react';
 
 const Navbar = () => {
@@ -10,7 +11,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { account, connectWallet, disconnectWallet, balance } = useContext(Web3Context);
-  const location = useLocation();
+  const pathname = usePathname();
 
   // Check if the page is scrolled
   useEffect(() => {
@@ -36,7 +37,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Payments', path: '/payment' },
-    { name: 'NFTs', path: '/nft' },
+    { name: 'NFTs', path: '/nft-issue' },
     { name: 'Receipts', path: '/receipts' },
     { name: 'Wallet', path: '/wallet' }
   ];
