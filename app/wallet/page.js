@@ -123,8 +123,7 @@ const WalletPage = () => {
               onClick={handleConnectGemWallet}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-medium rounded-lg px-6 py-4 text-white flex items-center justify-center"
             >
-              <img src="/gemwallet-logo.svg" alt="GemWallet" className="h-5 w-5 mr-2" />
-              GemWallet 연결하기
+              💎 GemWallet 연결하기
             </button>
             
             <div className="relative">
@@ -170,7 +169,7 @@ const WalletPage = () => {
           </ol>
           <div className="mt-4 flex justify-center">
             <a 
-              href="https://chrome.google.com/webstore/detail/gemwallet/amfpnfjmpcjjahgodnkjjgplgdlbfant"
+              href="https://chromewebstore.google.com/detail/gemwallet/egebedonbdapoieedfcfkofloclfghab?hl=en"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-400 hover:text-blue-300 flex items-center"

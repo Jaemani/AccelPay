@@ -189,7 +189,7 @@ export default function Home() {
                   GemWallet은 XRPL(XRP Ledger)을 위한 브라우저 확장 지갑으로, 개인 키 관리와 트랜잭션 서명을 쉽게 처리할 수 있게 해줍니다.
                 </p>
                 <a 
-                  href="https://chrome.google.com/webstore/detail/gemwallet/amfpnfjmpcjjahgodnkjjgplgdlbfant"
+                  href="https://chromewebstore.google.com/detail/gemwallet/egebedonbdapoieedfcfkofloclfghab?hl=en"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"
