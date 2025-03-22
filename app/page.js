@@ -104,7 +104,7 @@ export default function Home() {
               <span className="text-white">XRP의 미래를 <br/>지금 경험하세요</span>
             </h1>
             <p className="text-xl mb-10 text-gray-300 max-w-xl">
-              빠르고 안전한 국제 결제, 디지털 학생증, 그리고 더 많은 것. 블록체인 기술로 재정의하는 글로벌 유학생 금융 서비스.
+              빠르고 안전한 국제 결제, 디지털 학생증, 그리고 더 많은 것.<br></br>블록체인 기술로 재정의하는 글로벌 유학생 금융 서비스.
             </p>
             <div className="flex flex-wrap gap-4">
               {!connected ? (
@@ -142,7 +142,7 @@ export default function Home() {
               <div className="flex -space-x-1.5">
                 <div className="w-6 h-6 rounded-full bg-blue-500 ring-2 ring-black flex items-center justify-center text-xs">P</div>
                 <div className="w-6 h-6 rounded-full bg-purple-500 ring-2 ring-black flex items-center justify-center text-xs">X</div>
-                <div className="w-6 h-6 rounded-full bg-green-500 ring-2 ring-black flex items-center justify-center text-xs">R</div>
+                <div className="w-6 h-6 rounded-full bg-green-300 ring-2 ring-black flex items-center justify-center text-xs">R</div>
               </div>
               <span>10,000+ 유저들의 선택</span>
             </div>

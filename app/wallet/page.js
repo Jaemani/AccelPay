@@ -25,10 +25,10 @@ const WalletPage = () => {
     try {
       setLoading(true);
       
-      // Refresh ETH balance
+      // Refresh XRP balance
       refreshBalance();
       
-      // Fetch ERC-20 tokens
+      // Fetch XRP-20 tokens
       const userTokens = await getUserTokens(account);
       setTokens(userTokens.tokens || []);
       
@@ -41,9 +41,9 @@ const WalletPage = () => {
       
       // Fetch recent transactions (mock data for example)
       setTransactions([
-        { hash: '0x123...abc', type: 'send', amount: '0.5 ETH', timestamp: Date.now() - 86400000, status: 'confirmed' },
+        { hash: '0x123...abc', type: 'send', amount: '0.5 XRP', timestamp: Date.now() - 86400000, status: 'confirmed' },
         { hash: '0x456...def', type: 'receive', amount: '100 USDC', timestamp: Date.now() - 172800000, status: 'confirmed' },
-        { hash: '0x789...ghi', type: 'swap', amount: '1 ETH → 1800 USDC', timestamp: Date.now() - 259200000, status: 'confirmed' }
+        { hash: '0x789...ghi', type: 'swap', amount: '1 XRP → 1800 USDC', timestamp: Date.now() - 259200000, status: 'confirmed' }
       ]);
     } catch (error) {
       console.error('Error fetching wallet data:', error);
@@ -58,7 +58,7 @@ const WalletPage = () => {
   };
 
   const viewOnExplorer = () => {
-    window.open(`https://etherscan.io/address/${account}`, '_blank');
+    window.open(`https://testnet.xrpl.org/accounts/${account}`, '_blank');
   };
 
   const formatAddress = (address) => {
@@ -105,7 +105,7 @@ const WalletPage = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-sm font-medium text-gray-400">Total Balance</h3>
-              <p className="text-2xl font-bold">{parseFloat(balance).toFixed(4)} ETH</p>
+              <p className="text-2xl font-bold">{parseFloat(balance).toFixed(4)} XRP</p>
             </div>
             <div className="p-2 bg-blue-500/20 rounded-full">
               <Coins className="h-6 w-6 text-blue-400" />
@@ -142,7 +142,7 @@ const WalletPage = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-sm font-medium text-gray-400">Network</h3>
-              <p className="font-medium">Ethereum Mainnet</p>
+              <p className="font-medium">XRP Mainnet</p>
             </div>
           </div>
           <Button
@@ -180,11 +180,11 @@ const WalletPage = () => {
                   <td className="py-4">
                     <div className="flex items-center">
                       <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">
-                        <span className="text-xs font-bold">ETH</span>
+                        <span className="text-xs font-bold">XRP</span>
                       </div>
                       <div>
-                        <p className="font-medium">Ethereum</p>
-                        <p className="text-xs text-gray-400">ETH</p>
+                        <p className="font-medium">XRP</p>
+                        <p className="text-xs text-gray-400">XRP</p>
                       </div>
                     </div>
                   </td>
