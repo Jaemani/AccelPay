@@ -39,8 +39,8 @@ const PaymentPage = () => {
   // 예시 대학교 목록
   const universities = [
     { name: '한양대학교', address: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh' },
-    { name: '하버드', address: 'rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv' },
-    { name: '스탠포드', address: 'rJb5KsHsDHF1YS5B5DU6QCkH5NsPaKQTcy' },
+    { name: 'POSTECH', address: 'rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv' },
+    { name: 'Stanford', address: 'rJb5KsHsDHF1YS5B5DU6QCkH5NsPaKQTcy' },
   ];
 
   const currencies = [

@@ -10,10 +10,11 @@ import { Wallet, CreditCard, Image, Receipt, ArrowRight, ExternalLink, Globe, Sh
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { account, connected, connect } = useContext(Web3Context);
+  const { account, connected, connect, connectGemWallet } = useContext(Web3Context);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef(null);
   const [scrollY, setScrollY] = useState(0);
+  const [showConnectOptions, setShowConnectOptions] = useState(false);
 
   // 마우스 움직임에 따른 인터랙티브 효과
   useEffect(() => {
@@ -44,6 +45,24 @@ export default function Home() {
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  // GemWallet 연결 핸들러
+  const handleConnectGemWallet = async () => {
+    await connectGemWallet();
+    setShowConnectOptions(false);
+    if (connected) {
+      router.push('/wallet');
+    }
+  };
+
+  // 테스트 지갑 생성 핸들러
+  const handleCreateTestWallet = async () => {
+    await connect('local');
+    setShowConnectOptions(false);
+    if (connected) {
+      router.push('/wallet');
+    }
+  };
 
   // 로딩 화면
   if (isLoading) {
@@ -108,15 +127,40 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap gap-4">
               {!connected ? (
-                <button 
-                  onClick={connect}
-                  className="relative group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center gap-2 overflow-hidden transition-all hover:pr-12"
-                >
-                  <Wallet size={20} className="relative z-10" /> 
-                  <span className="relative z-10">지갑 연결하기</span>
-                  <div className="absolute right-0 w-8 h-full bg-white/20 skew-x-[-20deg] translate-x-20 group-hover:translate-x-8 transition-transform duration-300"></div>
-                  <ArrowRight size={20} className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-                </button>
+                showConnectOptions ? (
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <button 
+                      onClick={handleConnectGemWallet}
+                      className="relative group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center gap-2 overflow-hidden transition-all"
+                    >
+                      <img src="/gemwallet-logo.svg" alt="GemWallet" className="h-5 w-5" />
+                      <span className="relative z-10">GemWallet 연결</span>
+                    </button>
+                    <button 
+                      onClick={handleCreateTestWallet}
+                      className="relative group px-8 py-4 bg-gray-800 border border-gray-700 hover:bg-gray-700 rounded-xl flex items-center gap-2 overflow-hidden transition-all"
+                    >
+                      <Wallet className="h-5 w-5" />
+                      <span className="relative z-10">테스트 지갑 생성</span>
+                    </button>
+                    <button 
+                      onClick={() => setShowConnectOptions(false)}
+                      className="px-4 py-2 text-gray-500 hover:text-gray-300"
+                    >
+                      취소
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => setShowConnectOptions(true)}
+                    className="relative group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center gap-2 overflow-hidden transition-all hover:pr-12"
+                  >
+                    <Wallet size={20} className="relative z-10" /> 
+                    <span className="relative z-10">지갑 연결하기</span>
+                    <div className="absolute right-0 w-8 h-full bg-white/20 skew-x-[-20deg] translate-x-20 group-hover:translate-x-8 transition-transform duration-300"></div>
+                    <ArrowRight size={20} className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+                  </button>
+                )
               ) : (
                 <button 
                   onClick={() => router.push('/wallet')}
@@ -138,6 +182,23 @@ export default function Home() {
                 <ArrowRight size={20} className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
               </button>
             </div>
+            {!connected && showConnectOptions && (
+              <div className="mt-6 max-w-lg p-4 bg-gray-800/70 rounded-lg border border-gray-700">
+                <h3 className="text-lg font-medium mb-2">GemWallet이란?</h3>
+                <p className="text-gray-400 text-sm mb-3">
+                  GemWallet은 XRPL(XRP Ledger)을 위한 브라우저 확장 지갑으로, 개인 키 관리와 트랜잭션 서명을 쉽게 처리할 수 있게 해줍니다.
+                </p>
+                <a 
+                  href="https://chrome.google.com/webstore/detail/gemwallet/amfpnfjmpcjjahgodnkjjgplgdlbfant"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"
+                >
+                  GemWallet 설치하기
+                  <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                </a>
+              </div>
+            )}
             <div className="mt-10 flex items-center gap-2 text-gray-500">
               <div className="flex -space-x-1.5">
                 <div className="w-6 h-6 rounded-full bg-blue-500 ring-2 ring-black flex items-center justify-center text-xs">P</div>

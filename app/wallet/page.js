@@ -1,19 +1,25 @@
 'use client';
 
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Web3Context } from '@/app/context/Web3Context';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, ExternalLink, RefreshCw, Wallet, Send, CreditCard, Coins } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import * as xrpl from 'xrpl';
+import { Copy, ExternalLink, RefreshCw, Wallet, Send, CreditCard, Coins, Loader2, AlertCircle } from 'lucide-react';
+
+// Spinner 컴포넌트 직접 구현
+const Spinner = () => (
+  <Loader2 className="h-5 w-5 animate-spin" />
+);
 
 const WalletPage = () => {
-  const { account, provider, balance, connected, connect, refreshBalance } = useContext(Web3Context);
-  const [loading, setLoading] = useState(false);
-  const [tokens, setTokens] = useState([]);
-  const [nfts, setNfts] = useState([]);
+  const router = useRouter();
+  const { account, connected, connect, balance, refreshBalance, disconnect, walletType, connectGemWallet, createWallet } = useContext(Web3Context);
   const [transactions, setTransactions] = useState([]);
+  const [nfts, setNfts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('assets');
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [showWalletOptions, setShowWalletOptions] = useState(false);
 
   useEffect(() => {
     if (connected) {
@@ -25,154 +31,291 @@ const WalletPage = () => {
     try {
       setLoading(true);
       
-      // Refresh XRP balance
-      refreshBalance();
+      // 잔액 새로고침
+      await refreshBalance();
       
-      // Fetch XRP-20 tokens
-      const userTokens = await getUserTokens(account);
-      setTokens(userTokens.tokens || []);
-      
-      // Fetch NFTs (mock data for example)
-      setNfts([
-        { id: 1, name: 'CryptoPunk #3100', collection: 'CryptoPunks', image: '/api/placeholder/100/100' },
-        { id: 2, name: 'Bored Ape #7329', collection: 'BAYC', image: '/api/placeholder/100/100' },
-        { id: 3, name: 'Azuki #1234', collection: 'Azuki', image: '/api/placeholder/100/100' }
-      ]);
-      
-      // Fetch recent transactions (mock data for example)
+      // 트랜잭션 내역 조회 (해커톤 데모에서는 예시 데이터 사용)
       setTransactions([
-        { hash: '0x123...abc', type: 'send', amount: '0.5 XRP', timestamp: Date.now() - 86400000, status: 'confirmed' },
-        { hash: '0x456...def', type: 'receive', amount: '100 USDC', timestamp: Date.now() - 172800000, status: 'confirmed' },
-        { hash: '0x789...ghi', type: 'swap', amount: '1 XRP → 1800 USDC', timestamp: Date.now() - 259200000, status: 'confirmed' }
+        { 
+          hash: 'A1B2C3D4E5F6...', 
+          type: '송금', 
+          amount: '10 XRP', 
+          timestamp: Date.now() - 86400000, 
+          status: '완료',
+          destination: 'rDest...' 
+        },
+        { 
+          hash: 'F6E5D4C3B2A1...', 
+          type: '수신', 
+          amount: '25 XRP', 
+          timestamp: Date.now() - 172800000, 
+          status: '완료',
+          destination: account 
+        }
       ]);
+      
+      // NFT 목록 조회 (해커톤 데모에서는 예시 데이터 사용)
+      setNfts([
+        {
+          nftId: 'NFT1234567890',
+          name: '한양대학교 학생증',
+          description: '컴퓨터소프트웨어학부 - 학번: 2021014911',
+          image: '/api/placeholder/100/100'
+        }
+      ]);
+      
     } catch (error) {
-      console.error('Error fetching wallet data:', error);
+      console.error('지갑 데이터 조회 오류:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const copyAddress = () => {
+    if (!account) return;
+    
     navigator.clipboard.writeText(account);
-    // You could add toast notification here
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
   };
 
   const viewOnExplorer = () => {
-    window.open(`https://testnet.xrpl.org/accounts/${account}`, '_blank');
+    window.open(`https://etherscan.io/address/${account}`, '_blank');
   };
 
   const formatAddress = (address) => {
+    if (!address) return '';
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  };
+
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  
+  // GemWallet 연결 처리
+  const handleConnectGemWallet = async () => {
+    await connectGemWallet();
+    setShowWalletOptions(false);
+  };
+  
+  // 테스트 지갑 생성 처리
+  const handleCreateTestWallet = async () => {
+    await createWallet();
+    setShowWalletOptions(false);
   };
 
   if (!connected) {
     return (
-      <div className="max-w-xl mx-auto text-center py-12">
+      <div className="max-w-xl mx-auto text-center py-12 p-6">
         <Wallet className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-        <h2 className="text-2xl font-bold mb-4">Connect your wallet</h2>
-        <p className="text-gray-400 mb-6">Connect your wallet to view your assets and transactions</p>
-        <Button 
-          onClick={connect}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 font-medium rounded-lg px-6 py-3"
-        >
-          Connect Wallet
-        </Button>
+        <h2 className="text-2xl font-bold mb-4">지갑 연결이 필요합니다</h2>
+        <p className="text-gray-400 mb-6">자산과 거래 내역을 보려면 XRP 지갑을 연결하세요</p>
+        
+        {showWalletOptions ? (
+          <div className="flex flex-col gap-4 max-w-md mx-auto">
+            <button 
+              onClick={handleConnectGemWallet}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-medium rounded-lg px-6 py-4 text-white flex items-center justify-center"
+            >
+              <img src="/gemwallet-logo.svg" alt="GemWallet" className="h-5 w-5 mr-2" />
+              GemWallet 연결하기
+            </button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-700"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-black px-3 text-gray-500 text-sm">또는</span>
+              </div>
+            </div>
+            
+            <button 
+              onClick={handleCreateTestWallet}
+              className="bg-gray-800 hover:bg-gray-700 font-medium rounded-lg px-6 py-4 text-white flex items-center justify-center"
+            >
+              <Wallet className="h-5 w-5 mr-2" />
+              테스트 지갑 생성하기
+            </button>
+            
+            <button 
+              onClick={() => setShowWalletOptions(false)}
+              className="text-gray-500 hover:text-gray-300 text-sm mt-2"
+            >
+              취소
+            </button>
+          </div>
+        ) : (
+          <button 
+            onClick={() => setShowWalletOptions(true)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-medium rounded-lg px-6 py-3 text-white"
+          >
+            지갑 연결하기
+          </button>
+        )}
+        
+        <div className="mt-8 p-6 bg-gray-800/50 rounded-lg max-w-md mx-auto">
+          <h3 className="text-lg font-semibold mb-2">GemWallet 사용 방법</h3>
+          <ol className="text-left text-gray-400 list-decimal pl-5 space-y-2">
+            <li>Chrome 웹 스토어에서 GemWallet 확장 프로그램을 설치합니다.</li>
+            <li>확장 프로그램을 열고 계정을 생성하거나 기존 계정을 가져옵니다.</li>
+            <li>위의 'GemWallet 연결하기' 버튼을 클릭하여 계정을 연결합니다.</li>
+            <li>GemWallet 확장 프로그램에서 연결 요청을 승인합니다.</li>
+          </ol>
+          <div className="mt-4 flex justify-center">
+            <a 
+              href="https://chrome.google.com/webstore/detail/gemwallet/amfpnfjmpcjjahgodnkjjgplgdlbfant"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 flex items-center"
+            >
+              <ExternalLink className="h-4 w-4 mr-1" />
+              GemWallet 설치하기
+            </a>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-4 md:mb-0">
-          My Wallet
+          내 지갑
         </h1>
         
         <div className="flex items-center bg-gray-800 rounded-lg p-2 border border-gray-700">
           <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
           <span className="font-medium mr-2">{formatAddress(account)}</span>
-          <button onClick={copyAddress} className="p-1 text-gray-400 hover:text-white">
+          
+          <button 
+            onClick={copyAddress} 
+            className="p-1 text-gray-400 hover:text-white relative"
+            aria-label="주소 복사"
+          >
             <Copy className="h-4 w-4" />
+            {copySuccess && (
+              <span className="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 bg-green-800 text-white text-xs px-2 py-1 rounded">
+                복사됨!
+              </span>
+            )}
           </button>
-          <button onClick={viewOnExplorer} className="p-1 text-gray-400 hover:text-white">
+          
+          <button 
+            onClick={viewOnExplorer} 
+            className="p-1 text-gray-400 hover:text-white"
+            aria-label="블록 탐색기에서 보기"
+          >
             <ExternalLink className="h-4 w-4" />
           </button>
+          
+          {walletType && (
+            <span className="ml-2 px-2 py-0.5 bg-gray-700 rounded-full text-xs">
+              {walletType === 'gemwallet' ? 'GemWallet' : '테스트 지갑'}
+            </span>
+          )}
         </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-gray-700 p-6 rounded-xl shadow-lg">
+        <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-gray-700 p-6 rounded-xl shadow-lg">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-sm font-medium text-gray-400">Total Balance</h3>
-              <p className="text-2xl font-bold">{parseFloat(balance).toFixed(4)} XRP</p>
+              <p className="text-2xl font-bold">{parseFloat(balance).toFixed(4)} ETH</p>
             </div>
             <div className="p-2 bg-blue-500/20 rounded-full">
               <Coins className="h-6 w-6 text-blue-400" />
             </div>
           </div>
-          <p className="text-sm text-gray-400">≈ ${(parseFloat(balance) * 2500).toFixed(2)} USD</p>
-        </Card>
+          <p className="text-sm text-gray-400">≈ ${(parseFloat(balance) * 0.5).toFixed(2)} USD</p>
+        </div>
         
-        <Card className="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-lg">
+        <div className="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-lg">
           <div className="flex justify-between items-start mb-6">
-            <h3 className="text-sm font-medium text-gray-400">Quick Actions</h3>
+            <h3 className="text-sm font-medium text-gray-400">빠른 메뉴</h3>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-16 bg-gray-700/50 border-gray-600 hover:bg-gray-700"
-              onClick={() => window.location.href = '/payment'}
+            <button
+              onClick={() => router.push('/payment')}
+              className="flex flex-col items-center justify-center h-16 bg-gray-700/50 border border-gray-600 rounded-lg hover:bg-gray-700"
             >
               <Send className="h-5 w-5 mb-1" />
-              <span className="text-xs">Send</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-col items-center justify-center h-16 bg-gray-700/50 border-gray-600 hover:bg-gray-700"
-              onClick={() => window.open('https://app.uniswap.org', '_blank')}
+              <span className="text-xs">송금하기</span>
+            </button>
+            <button
+              onClick={() => router.push('/nft-issue')}
+              className="flex flex-col items-center justify-center h-16 bg-gray-700/50 border border-gray-600 rounded-lg hover:bg-gray-700"
             >
               <CreditCard className="h-5 w-5 mb-1" />
-              <span className="text-xs">Buy</span>
-            </Button>
+              <span className="text-xs">학생증 발급</span>
+            </button>
           </div>
-        </Card>
+        </div>
         
-        <Card className="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-lg">
+        <div className="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-lg">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-sm font-medium text-gray-400">Network</h3>
-              <p className="font-medium">XRP Mainnet</p>
+              <p className="font-medium">Ethereum Mainnet</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            className="w-full mt-2 bg-gray-700/50 border-gray-600 hover:bg-gray-700"
-            onClick={fetchWalletData}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </Card>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={fetchWalletData}
+              className="flex items-center justify-center h-10 bg-gray-700/50 border border-gray-600 rounded-lg hover:bg-gray-700"
+              disabled={loading}
+            >
+              {loading ? <Spinner /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              <span>새로고침</span>
+            </button>
+            <button
+              onClick={disconnect}
+              className="flex items-center justify-center h-10 bg-red-900/20 border border-red-800/30 text-red-400 rounded-lg hover:bg-red-900/30"
+            >
+              <span>연결 해제</span>
+            </button>
+          </div>
+        </div>
       </div>
       
-      <Card className="bg-gray-800 border border-gray-700 rounded-xl shadow-xl overflow-hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="px-6 pt-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="assets">Assets</TabsTrigger>
-              <TabsTrigger value="nfts">NFTs</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
-            </TabsList>
-          </div>
-          
-          <TabsContent value="assets" className="p-6">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-xl overflow-hidden">
+        <div className="flex border-b border-gray-700">
+          <button 
+            className={`px-4 py-3 text-sm font-medium ${activeTab === 'assets' ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}
+            onClick={() => setActiveTab('assets')}
+          >
+            자산
+          </button>
+          <button 
+            className={`px-4 py-3 text-sm font-medium ${activeTab === 'nfts' ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}
+            onClick={() => setActiveTab('nfts')}
+          >
+            NFT 학생증
+          </button>
+          <button 
+            className={`px-4 py-3 text-sm font-medium ${activeTab === 'activity' ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-white'}`}
+            onClick={() => setActiveTab('activity')}
+          >
+            거래 내역
+          </button>
+        </div>
+        
+        {activeTab === 'assets' && (
+          <div className="p-6">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-gray-700">
-                  <th className="pb-4 text-gray-400 font-medium">Token</th>
-                  <th className="pb-4 text-gray-400 font-medium text-right">Balance</th>
-                  <th className="pb-4 text-gray-400 font-medium text-right">Value</th>
+                  <th className="pb-4 text-gray-400 font-medium">자산</th>
+                  <th className="pb-4 text-gray-400 font-medium text-right">잔액</th>
+                  <th className="pb-4 text-gray-400 font-medium text-right">가치 (USD)</th>
                 </tr>
               </thead>
               <tbody>
@@ -183,84 +326,108 @@ const WalletPage = () => {
                         <span className="text-xs font-bold">XRP</span>
                       </div>
                       <div>
-                        <p className="font-medium">XRP</p>
-                        <p className="text-xs text-gray-400">XRP</p>
+                        <p className="font-medium">Ethereum</p>
+                        <p className="text-xs text-gray-400">ETH</p>
                       </div>
                     </div>
                   </td>
                   <td className="py-4 text-right font-medium">{parseFloat(balance).toFixed(4)}</td>
-                  <td className="py-4 text-right font-medium">${(parseFloat(balance) * 2500).toFixed(2)}</td>
+                  <td className="py-4 text-right font-medium">${(parseFloat(balance) * 0.5).toFixed(2)}</td>
                 </tr>
-                
-                {tokens.map((token, index) => (
-                  <tr key={token.symbol} className="border-b border-gray-700">
-                    <td className="py-4">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center mr-3">
-                          <span className="text-xs font-bold">{token.symbol}</span>
-                        </div>
-                        <div>
-                          <p className="font-medium">{token.name}</p>
-                          <p className="text-xs text-gray-400">{token.symbol}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 text-right font-medium">{token.balance}</td>
-                    <td className="py-4 text-right font-medium">${token.value.toFixed(2)}</td>
-                  </tr>
-                ))}
               </tbody>
             </table>
-          </TabsContent>
-          
-          <TabsContent value="nfts" className="p-6">
+          </div>
+        )}
+        
+        {activeTab === 'nfts' && (
+          <div className="p-6">
             {loading ? (
-              <div className="flex justify-center items-center">
+              <div className="flex justify-center items-center py-8">
                 <Spinner />
+                <span className="ml-2">NFT 로딩 중...</span>
+              </div>
+            ) : nfts.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400">보유 중인 NFT가 없습니다</p>
+                <button
+                  onClick={() => router.push('/nft-issue')}
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+                >
+                  NFT 학생증 발급하기
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {nfts.map((nft) => (
-                  <Card key={nft.id} className="bg-gray-700/50 border-gray-600 rounded-lg shadow-lg">
-                    <img src={nft.image} alt={nft.name} className="w-full h-64 object-cover rounded-t-lg" />
+                {nfts.map((nft, index) => (
+                  <div key={index} className="bg-gray-700/50 border border-gray-600 rounded-lg shadow-lg overflow-hidden">
+                    <div className="h-48 bg-gray-600 flex items-center justify-center">
+                      {nft.image ? (
+                        <img 
+                          src={nft.image} 
+                          alt={nft.name} 
+                          className="w-full h-full object-cover" 
+                        />
+                      ) : (
+                        <div className="text-gray-400">이미지 없음</div>
+                      )}
+                    </div>
                     <div className="p-4">
                       <h4 className="text-lg font-medium text-white">{nft.name}</h4>
-                      <p className="text-sm text-gray-400">{nft.collection}</p>
+                      <p className="text-sm text-gray-400 mt-1">{nft.description}</p>
+                      <div className="mt-3 pt-3 border-t border-gray-600">
+                        <p className="text-xs text-gray-400">NFT ID:</p>
+                        <p className="text-xs text-gray-300 truncate">{nft.nftId}</p>
+                      </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             )}
-          </TabsContent>
-          
-          <TabsContent value="activity" className="p-6">
+          </div>
+        )}
+        
+        {activeTab === 'activity' && (
+          <div className="p-6">
             {loading ? (
-              <div className="flex justify-center items-center">
+              <div className="flex justify-center items-center py-8">
                 <Spinner />
+                <span className="ml-2">거래 내역 로딩 중...</span>
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400">거래 내역이 없습니다</p>
               </div>
             ) : (
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    <th className="pb-4 text-gray-400 font-medium">Type</th>
-                    <th className="pb-4 text-gray-400 font-medium">Amount</th>
-                    <th className="pb-4 text-gray-400 font-medium">Status</th>
+                    <th className="pb-4 text-gray-400 font-medium">유형</th>
+                    <th className="pb-4 text-gray-400 font-medium">금액</th>
+                    <th className="pb-4 text-gray-400 font-medium hidden md:table-cell">날짜</th>
+                    <th className="pb-4 text-gray-400 font-medium">상태</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((txn, index) => (
-                    <tr key={txn.hash} className="border-b border-gray-700">
-                      <td className="py-4">{txn.type}</td>
-                      <td className="py-4">{txn.amount}</td>
-                      <td className="py-4">{txn.status}</td>
+                  {transactions.map((tx, index) => (
+                    <tr key={index} className="border-b border-gray-700">
+                      <td className="py-4">{tx.type}</td>
+                      <td className="py-4">{tx.amount}</td>
+                      <td className="py-4 hidden md:table-cell">{formatDate(tx.timestamp)}</td>
+                      <td className="py-4">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          tx.status === '완료' ? 'bg-green-900/20 text-green-400' : 'bg-yellow-900/20 text-yellow-400'
+                        }`}>
+                          {tx.status}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
-          </TabsContent>
-        </Tabs>
-      </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
