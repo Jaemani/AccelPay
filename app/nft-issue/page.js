@@ -57,7 +57,7 @@ const WalletPage = () => {
       setNfts([
         {
           nftId: 'NFT1234567890',
-          name: '서울대학교 학생증',
+          name: '한양대학교 학생증',
           description: '컴퓨터공학과 - 학번: 2023-12345',
           image: '/api/placeholder/100/100'
         }

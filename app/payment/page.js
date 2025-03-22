@@ -2,6 +2,7 @@
 
 import { useState, useContext, useEffect } from 'react';
 import { Web3Context } from '@/app/context/Web3Context';
+import { Receipt } from '@/app/receipts/page';
 import { useRouter } from 'next/navigation';
 import * as xrpl from 'xrpl';
 import { 
@@ -37,9 +38,9 @@ const PaymentPage = () => {
   
   // 예시 대학교 목록
   const universities = [
-    { name: '서울대학교', address: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh' },
-    { name: '연세대학교', address: 'rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv' },
-    { name: '고려대학교', address: 'rJb5KsHsDHF1YS5B5DU6QCkH5NsPaKQTcy' },
+    { name: '한양대학교', address: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh' },
+    { name: '하버드', address: 'rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv' },
+    { name: '스탠포드', address: 'rJb5KsHsDHF1YS5B5DU6QCkH5NsPaKQTcy' },
   ];
 
   const currencies = [
@@ -430,7 +431,7 @@ const PaymentPage = () => {
                             onClick={() => router.push('/receipts')}
                             className="flex-1 bg-gray-800 hover:bg-gray-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center"
                           >
-                            <Receipt className="h-4 w-4 mr-2" />
+                            <div className="h-4 w-4 mr-2" />
                             영수증 보기
                           </button>
                           <button
