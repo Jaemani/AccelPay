@@ -1,6 +1,6 @@
-// src/app/api/nft/mint/route.js
+// app/api/nft/mint/route.js
 import { mintStudentIdNFT } from '@/lib/xrpl/nft';
-import { successResponse, errorResponse, handleApiError } from '@/lib/utils/response';
+import { NextResponse } from 'next/server';
 
 /**
  * POST /api/nft/mint
@@ -13,8 +13,12 @@ export async function POST(request) {
     
     // 필수 데이터 검증
     if (!requestData.studentInfo || !requestData.receiverAddress) {
-      return Response.json(
-        errorResponse("학생 정보와 수신자 주소는 필수입니다.", 400),
+      return NextResponse.json(
+        {
+          success: false,
+          message: "학생 정보와 수신자 주소는 필수입니다.",
+          status: 400
+        },
         { status: 400 }
       );
     }
@@ -25,8 +29,12 @@ export async function POST(request) {
     const requiredFields = ['name', 'school', 'studentId'];
     for (const field of requiredFields) {
       if (!studentInfo[field]) {
-        return Response.json(
-          errorResponse(`학생 정보에 ${field} 필드가 누락되었습니다.`, 400),
+        return NextResponse.json(
+          {
+            success: false,
+            message: `학생 정보에 ${field} 필드가 누락되었습니다.`,
+            status: 400
+          },
           { status: 400 }
         );
       }
@@ -36,21 +44,40 @@ export async function POST(request) {
     const result = await mintStudentIdNFT(studentInfo, receiverAddress);
     
     // 성공 응답 반환
-    return Response.json(
-      successResponse(result, "학생증 NFT가 성공적으로 발행되었습니다.", 201)
+    return NextResponse.json(
+      {
+        success: true,
+        message: "학생증 NFT가 성공적으로 발행되었습니다.",
+        data: result,
+        status: 201
+      },
+      { status: 201 }
     );
   } catch (error) {
-    return handleApiError(error);
+    console.error('NFT 발행 중 오류 발생:', error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message || "학생증 NFT 발행 중 오류가 발생했습니다.",
+        status: 500
+      },
+      { status: 500 }
+    );
   }
 }
 
 /**
  * GET /api/nft/mint
- * POST 메소드만 허용하도록 메서드 제한
+ * 메서드 제한을 위한 핸들러
  */
 export async function GET() {
-  return Response.json(
-    { error: "Method not allowed" },
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Method not allowed",
+      status: 405
+    },
     { status: 405 }
   );
 }
