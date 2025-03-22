@@ -133,8 +133,7 @@ export default function Home() {
                       onClick={handleConnectGemWallet}
                       className="relative group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center gap-2 overflow-hidden transition-all"
                     >
-                      <img src="/gemwallet-logo.svg" alt="GemWallet" className="h-5 w-5" />
-                      <span className="relative z-10">GemWallet 연결</span>
+                      <span className="relative z-10">💎 GemWallet 연결</span>
                     </button>
                     <button 
                       onClick={handleCreateTestWallet}
