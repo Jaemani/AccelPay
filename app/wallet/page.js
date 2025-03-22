@@ -229,7 +229,7 @@ const WalletPage = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-sm font-medium text-gray-400">Total Balance</h3>
-              <p className="text-2xl font-bold">{parseFloat(balance).toFixed(4)} ETH</p>
+              <p className="text-2xl font-bold">{parseFloat(balance).toFixed(4)} XRP</p>
             </div>
             <div className="p-2 bg-blue-500/20 rounded-full">
               <Coins className="h-6 w-6 text-blue-400" />
@@ -264,7 +264,7 @@ const WalletPage = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-sm font-medium text-gray-400">Network</h3>
-              <p className="font-medium">Ethereum Mainnet</p>
+              <p className="font-medium">XRPL Testnet</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -326,8 +326,8 @@ const WalletPage = () => {
                         <span className="text-xs font-bold">XRP</span>
                       </div>
                       <div>
-                        <p className="font-medium">Ethereum</p>
-                        <p className="text-xs text-gray-400">ETH</p>
+                        <p className="font-medium">XRP</p>
+                        <p className="text-xs text-gray-400">XRP</p>
                       </div>
                     </div>
                   </td>
